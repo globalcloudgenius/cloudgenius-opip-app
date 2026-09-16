@@ -7,8 +7,9 @@ RUN apt-get update \
     && addgroup --system opip \
     && adduser --system --ingroup opip opip
 COPY requirements.txt .
-RUN python -m pip install --no-cache-dir --upgrade pip setuptools \
-    && python -m pip install --no-cache-dir -r requirements.txt
+RUN python -m pip install --no-cache-dir --upgrade pip \
+    && python -m pip install --no-cache-dir -r requirements.txt \
+    && python -m pip uninstall -y setuptools msgpack
 COPY app ./app
 USER opip
 EXPOSE 8000
