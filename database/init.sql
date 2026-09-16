@@ -1,0 +1,9 @@
+CREATE TABLE IF NOT EXISTS population (id SERIAL PRIMARY KEY, year INTEGER NOT NULL, municipality VARCHAR(120) NOT NULL, region VARCHAR(120) NOT NULL, population BIGINT NOT NULL, CONSTRAINT uq_population_year_municipality UNIQUE(year, municipality));
+
+-- Synthetic demonstration data for training; replace with an authoritative public dataset before analytical use.
+INSERT INTO population (year, municipality, region, population) VALUES
+(2022,'Toronto','Toronto',2794000),(2022,'Ottawa','Ottawa',1017000),(2022,'Mississauga','Peel',730000),(2022,'Brampton','Peel',680000),(2022,'Hamilton','Hamilton',580000),(2022,'London','Middlesex',430000),(2022,'Markham','York',350000),(2022,'Vaughan','York',330000),(2022,'Kitchener','Waterloo',270000),(2022,'Windsor','Essex',235000),
+(2023,'Toronto','Toronto',2835000),(2023,'Ottawa','Ottawa',1035000),(2023,'Mississauga','Peel',742000),(2023,'Brampton','Peel',700000),(2023,'Hamilton','Hamilton',590000),(2023,'London','Middlesex',441000),(2023,'Markham','York',358000),(2023,'Vaughan','York',339000),(2023,'Kitchener','Waterloo',279000),(2023,'Windsor','Essex',241000),
+(2024,'Toronto','Toronto',2880000),(2024,'Ottawa','Ottawa',1054000),(2024,'Mississauga','Peel',754000),(2024,'Brampton','Peel',722000),(2024,'Hamilton','Hamilton',602000),(2024,'London','Middlesex',453000),(2024,'Markham','York',366000),(2024,'Vaughan','York',348000),(2024,'Kitchener','Waterloo',289000),(2024,'Windsor','Essex',248000),
+(2025,'Toronto','Toronto',2928000),(2025,'Ottawa','Ottawa',1074000),(2025,'Mississauga','Peel',767000),(2025,'Brampton','Peel',745000),(2025,'Hamilton','Hamilton',614000),(2025,'London','Middlesex',466000),(2025,'Markham','York',375000),(2025,'Vaughan','York',358000),(2025,'Kitchener','Waterloo',299000),(2025,'Windsor','Essex',255000)
+ON CONFLICT (year, municipality) DO NOTHING;
