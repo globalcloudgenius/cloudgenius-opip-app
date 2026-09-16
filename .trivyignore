@@ -1,0 +1,7 @@
+# These two findings are emitted from stale third-party SBOM metadata embedded in the upstream python:3.13-slim image.
+# The packages are not present in the final OPIP API runtime image: msgpack is not an application dependency,
+# and setuptools is not installed in the runtime environment. Trivy itself warns that third-party SBOM data
+# may produce inaccurate vulnerability detection for this image. Keep these exceptions narrowly scoped and
+# remove them when the upstream Python base image SBOM is corrected.
+GHSA-6v7p-g79w-8964
+CVE-2025-47273
