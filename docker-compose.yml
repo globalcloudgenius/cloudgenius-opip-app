@@ -1,0 +1,46 @@
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: opip
+      POSTGRES_USER: opip
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-opip-local-only}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/001-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U opip -d opip"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks: [opip]
+
+  api:
+    build: ./services/population-api
+    environment:
+      DATABASE_URL: postgresql+psycopg://opip:${POSTGRES_PASSWORD:-opip-local-only}@db:5432/opip
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+    networks: [opip]
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+    depends_on: [api]
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+    networks: [opip]
+
+volumes:
+  postgres_data:
+
+networks:
+  opip:
+    driver: bridge
