@@ -56,6 +56,71 @@ jobs:
       - name: Build
         run: npm run build
 
+  sast:
+    name: Semgrep SAST
+    runs-on: ubuntu-latest
+    container:
+      image: semgrep/semgrep:latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Scan source code
+        run: semgrep scan --config auto --error .
+
+  secret-scan:
+    name: Gitleaks secret scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout full history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Scan repository history
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  dependency-scan:
+    name: Dependency vulnerability scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Audit Python dependencies
+        working-directory: services/population-api
+        run: |
+          python -m pip install --upgrade pip pip-audit
+          pip-audit -r requirements.txt
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Audit frontend dependencies
+        working-directory: frontend
+        run: |
+          npm install --package-lock-only --ignore-scripts
+          npm audit --audit-level=high
+
+  filesystem-scan:
+    name: Trivy filesystem scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Scan repository
+        uses: aquasecurity/trivy-action@0.33.1
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln,misconfig,secret
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: '1'
+
   container-build:
     name: Container build validation
     runs-on: ubuntu-latest
@@ -67,3 +132,48 @@ jobs:
         run: docker build -t opip-api:ci services/population-api
       - name: Build frontend image
         run: docker build --build-arg NEXT_PUBLIC_API_URL=http://localhost:8000 -t opip-frontend:ci frontend
+      - name: Scan API image
+        uses: aquasecurity/trivy-action@0.33.1
+        with:
+          image-ref: opip-api:ci
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: '1'
+      - name: Scan frontend image
+        uses: aquasecurity/trivy-action@0.33.1
+        with:
+          image-ref: opip-frontend:ci
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: '1'
+
+  security-gate:
+    name: DevSecOps security gate
+    runs-on: ubuntu-latest
+    if: always()
+    needs:
+      - backend-tests
+      - frontend-build
+      - sast
+      - secret-scan
+      - dependency-scan
+      - filesystem-scan
+      - container-build
+    steps:
+      - name: Enforce required results
+        env:
+          BACKEND: ${{ needs.backend-tests.result }}
+          FRONTEND: ${{ needs.frontend-build.result }}
+          SAST: ${{ needs.sast.result }}
+          SECRETS: ${{ needs.secret-scan.result }}
+          DEPENDENCIES: ${{ needs.dependency-scan.result }}
+          FILESYSTEM: ${{ needs.filesystem-scan.result }}
+          CONTAINERS: ${{ needs.container-build.result }}
+        run: |
+          for result in "$BACKEND" "$FRONTEND" "$SAST" "$SECRETS" "$DEPENDENCIES" "$FILESYSTEM" "$CONTAINERS"; do
+            if [ "$result" != "success" ]; then
+              echo "One or more OPIP quality/security gates failed."
+              exit 1
+            fi
+          done
+          echo "All OPIP quality and security gates passed."
