@@ -4,6 +4,6 @@ SQLAlchemy==2.0.43
 psycopg[binary]==3.2.9
 pydantic-settings==2.10.1
 python-dotenv==1.2.3
-prometheus-fastapi-instrumentator==7.1.0
+prometheus-fastapi-instrumentator==8.1.0
 pytest==9.1.1
 httpx==0.28.1
