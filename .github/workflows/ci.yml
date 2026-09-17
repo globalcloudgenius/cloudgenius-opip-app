@@ -121,6 +121,39 @@ jobs:
           ignore-unfixed: true
           exit-code: '1'
 
+  sonarqube:
+    name: SonarQube SAST and Quality Gate
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: [self-hosted, linux, x64, opip]
+    steps:
+      - name: Checkout full history
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Validate SonarQube connectivity
+        shell: bash
+        env:
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        run: |
+          set -euo pipefail
+          test -n "$SONAR_HOST_URL"
+          getent hosts sonarqube.cloudgenius.ca
+          curl --fail --silent --show-error "$SONAR_HOST_URL/api/system/status"
+
+      - name: SonarQube scan
+        uses: SonarSource/sonarqube-scan-action@7006c4492b2e0ee0f816d36501671557c97f5995 # v8.1.0
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+
+      - name: SonarQube Quality Gate
+        uses: SonarSource/sonarqube-quality-gate-action@cf038b0e0cdecfa9e56c198bbb7d21d751d62c3b # v1.2.0
+        timeout-minutes: 5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+
   container-build:
     name: Container build validation
     runs-on: ubuntu-latest
@@ -162,24 +195,35 @@ jobs:
       - secret-scan
       - dependency-scan
       - filesystem-scan
+      - sonarqube
       - container-build
     steps:
       - name: Enforce required results
         env:
+          EVENT_NAME: ${{ github.event_name }}
           BACKEND: ${{ needs.backend-tests.result }}
           FRONTEND: ${{ needs.frontend-build.result }}
           SAST: ${{ needs.sast.result }}
           SECRETS: ${{ needs.secret-scan.result }}
           DEPENDENCIES: ${{ needs.dependency-scan.result }}
           FILESYSTEM: ${{ needs.filesystem-scan.result }}
+          SONARQUBE: ${{ needs.sonarqube.result }}
           CONTAINERS: ${{ needs.container-build.result }}
         run: |
+          set -euo pipefail
+
           for result in "$BACKEND" "$FRONTEND" "$SAST" "$SECRETS" "$DEPENDENCIES" "$FILESYSTEM" "$CONTAINERS"; do
             if [ "$result" != "success" ]; then
               echo "One or more OPIP quality/security gates failed."
               exit 1
             fi
           done
+
+          if [ "$EVENT_NAME" = "push" ] && [ "$SONARQUBE" != "success" ]; then
+            echo "SonarQube analysis or Quality Gate failed."
+            exit 1
+          fi
+
           echo "All OPIP quality and security gates passed."
 
   publish-harbor:
