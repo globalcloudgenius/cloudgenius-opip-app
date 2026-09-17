@@ -309,15 +309,15 @@ jobs:
 
           API_PUSH_OUTPUT="$(docker push "$API_IMAGE")"
           printf '%s\n' "$API_PUSH_OUTPUT"
-          API_DIGEST="$(printf '%s\n' "$API_PUSH_OUTPUT" | awk '/digest: sha256:/{print $2}' | tail -1)"
-          test -n "$API_DIGEST"
+          API_DIGEST="$(printf '%s\n' "$API_PUSH_OUTPUT" | sed -nE 's/.*digest: (sha256:[0-9a-f]{64}).*/\1/p' | tail -1)"
+          [[ "$API_DIGEST" =~ ^sha256:[0-9a-f]{64}$ ]]
 
           docker push "$HARBOR_REGISTRY/$HARBOR_PROJECT/$API_IMAGE_NAME:main"
 
           FRONTEND_PUSH_OUTPUT="$(docker push "$FRONTEND_IMAGE")"
           printf '%s\n' "$FRONTEND_PUSH_OUTPUT"
-          FRONTEND_DIGEST="$(printf '%s\n' "$FRONTEND_PUSH_OUTPUT" | awk '/digest: sha256:/{print $2}' | tail -1)"
-          test -n "$FRONTEND_DIGEST"
+          FRONTEND_DIGEST="$(printf '%s\n' "$FRONTEND_PUSH_OUTPUT" | sed -nE 's/.*digest: (sha256:[0-9a-f]{64}).*/\1/p' | tail -1)"
+          [[ "$FRONTEND_DIGEST" =~ ^sha256:[0-9a-f]{64}$ ]]
 
           docker push "$HARBOR_REGISTRY/$HARBOR_PROJECT/$FRONTEND_IMAGE_NAME:main"
 
