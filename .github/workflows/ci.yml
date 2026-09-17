@@ -278,8 +278,8 @@ jobs:
           API_IMAGE="$HARBOR_REGISTRY/$HARBOR_PROJECT/$API_IMAGE_NAME:${GITHUB_SHA}"
           FRONTEND_IMAGE="$HARBOR_REGISTRY/$HARBOR_PROJECT/$FRONTEND_IMAGE_NAME:${GITHUB_SHA}"
 
-          grype "$API_IMAGE" --fail-on high
-          grype "$FRONTEND_IMAGE" --fail-on high
+          grype "$API_IMAGE" --fail-on high --only-fixed
+          grype "$FRONTEND_IMAGE" --fail-on high --only-fixed
 
       - name: Log in to Harbor
         shell: bash
