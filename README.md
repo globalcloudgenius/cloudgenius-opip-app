@@ -1,5 +1,7 @@
 # CloudGenius Ontario Population Intelligence Platform (OPIP)
 
+**Client overview:** [Client-facing case study](./CASE-STUDY.md)
+
 > A production-style population intelligence application and DevSecOps engineering project demonstrating how a modern web workload can progress from source code to a secure, observable, GitOps-managed Kubernetes platform.
 
 [![OPIP CI](https://github.com/globalcloudgenius/cloudgenius-opip-app/actions/workflows/ci.yml/badge.svg)](https://github.com/globalcloudgenius/cloudgenius-opip-app/actions/workflows/ci.yml)
