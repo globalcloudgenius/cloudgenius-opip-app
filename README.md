@@ -2,6 +2,37 @@
 
 **Client overview:** [Client-facing case study](./CASE-STUDY.md)
 
+## Outcome & Evidence
+
+| Evidence | Result |
+|---|---|
+| Frontend | Next.js / React / TypeScript |
+| API | Python FastAPI |
+| Data tier | PostgreSQL |
+| Local integration | Docker Compose |
+| Operational endpoints | Health, readiness, and metrics endpoints |
+| Backend validation | Pytest in CI |
+| Frontend validation | TypeScript typecheck + production build in CI |
+| Container validation | API and frontend image builds in CI |
+| Delivery evidence | Initial vertical slice passed all three CI gates before merge |
+
+**Proof:** CI workflow, application source, tests, container definitions, and the [client-facing case study](./CASE-STUDY.md) are all included in the repository.
+
+## Architecture at a glance
+
+```mermaid
+flowchart LR
+    U[User Browser] --> F[Next.js / React / TypeScript]
+    F --> A[FastAPI Service]
+    A --> D[(PostgreSQL)]
+    A --> M[Metrics]
+    CI[GitHub Actions] --> T[Backend Tests]
+    CI --> V[Frontend Typecheck / Build]
+    CI --> B[Container Build Validation]
+```
+
+---
+
 > A production-style population intelligence application and DevSecOps engineering project demonstrating how a modern web workload can progress from source code to a secure, observable, GitOps-managed Kubernetes platform.
 
 [![OPIP CI](https://github.com/globalcloudgenius/cloudgenius-opip-app/actions/workflows/ci.yml/badge.svg)](https://github.com/globalcloudgenius/cloudgenius-opip-app/actions/workflows/ci.yml)
