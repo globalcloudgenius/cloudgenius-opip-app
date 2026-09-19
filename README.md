@@ -332,3 +332,22 @@ CloudGenius OPIP is an independent training and portfolio project. It is not an 
 ## License
 
 This project is licensed under the MIT License. See `LICENSE` for details.
+
+---
+
+## Consulting relevance
+
+OPIP demonstrates how I approach modern application and platform delivery across architecture, software engineering, containers, CI, security controls, observability, and operational readiness.
+
+Typical consulting use cases include:
+
+- application modernization;
+- cloud-native architecture;
+- DevOps / DevSecOps enablement;
+- containerization;
+- CI/CD design;
+- platform engineering;
+- technical leadership across application and infrastructure teams.
+
+**Consulting inquiries:** advisory@cloudgenius.ca · https://cloudgenius.ca
+
